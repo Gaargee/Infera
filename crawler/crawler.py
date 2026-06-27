@@ -116,7 +116,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 visited = set() # prevnt duplicte crawling
 inverted_index = defaultdict(list)
 def clean_text(text):# This function takes a string of text as input and processes it to remove common stop words, which are words that do not add significant meaning to the text (like "the", "is", "and", etc.). The function converts the text to lowercase, splits it into individual words, and then filters out any words that are present in the predefined set of stop words. Finally, it returns a list of cleaned words that can be used for further analysis or processing.
-    words = text.lower() # Convert the input text to lowercase to ensure uniformity and make it easier to compare words against the stop words set.
+    text = text.lower() # Convert the input text to lowercase to ensure uniformity and make it easier to compare words against the stop words set.
     text = re.sub(r'[^a-zA-Z\s]', ' ', text) # This uses a regular expression to remove any characters from the text that are not lowercase letters (a-z) or whitespace. This helps to clean the text by eliminating punctuation, numbers, and other non-alphabetic characters.
     words = text.split() # This splits the cleaned text into a list of individual words based on whitespace. Each word can then be processed to check if it is a stop word or not.
     filtered =[] # Create an empty list to store the filtered words
@@ -148,8 +148,13 @@ def bfs_crawl(start_url, max_pages=10):
             continue
 
         soup = BeautifulSoup(response.text, "html.parser")
-        text = soup.get_text() # Extracts all the text content from the webpage, removing HTML tags and other non-text elements. This allows us to analyze the actual content of the page without any formatting or markup.
+        text = soup.get_text(separator= " ") # Extracts all the text content from the webpage, removing HTML tags and other non-text elements. This allows us to analyze the actual content of the page without any formatting or markup.
+        print(text[:500])
         cleaned_words = clean_text(text) # This calls the clean_text function to process the extracted text and remove stop words, resulting in a list of meaningful words that can be used for further analysis or processing.
+        print("\nFirst 30 cleaned words:")
+        print(cleaned_words[:30])
+        for word in set(cleaned_words):
+            inverted_index[word].append(current_url)
         word_count = Counter(cleaned_words) 
         file_path = os.path.join(DATA_DIR, "pages.txt")
         with open(file_path, "a", encoding="utf-8") as file:
@@ -183,3 +188,15 @@ def bfs_crawl(start_url, max_pages=10):
 # Start program
 start_url = input("Enter website URL: ")
 bfs_crawl(start_url, max_pages=5)
+while True:
+    query = input("\nSearch word (type 'exit' to quit): ").lower()
+
+    if query == "exit":
+        break
+
+    if query in inverted_index:
+        print("\nFound in:")
+        for url in inverted_index[query]:
+            print(url)
+    else:
+        print("\nWord not found.")
