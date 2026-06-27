@@ -96,10 +96,11 @@
 
 
 import requests
+import os
 from bs4 import BeautifulSoup
-import urllib3
-from urllib.parse import urljoin
-from collections import deque
+import urllib3 # use to suppress ssl warning
+from urllib.parse import urljoin #joij the links 
+from collections import deque, Counter, defaultdict
 import re
 stop_words = {
     "i","me","my","we","our","you","your","he","she","it","they","them",
@@ -112,7 +113,8 @@ stop_words = {
 }
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-visited = set()
+visited = set() # prevnt duplicte crawling
+inverted_index = defaultdict(list)
 def clean_text(text):# This function takes a string of text as input and processes it to remove common stop words, which are words that do not add significant meaning to the text (like "the", "is", "and", etc.). The function converts the text to lowercase, splits it into individual words, and then filters out any words that are present in the predefined set of stop words. Finally, it returns a list of cleaned words that can be used for further analysis or processing.
     words = text.lower() # Convert the input text to lowercase to ensure uniformity and make it easier to compare words against the stop words set.
     text = re.sub(r'[^a-zA-Z\s]', ' ', text) # This uses a regular expression to remove any characters from the text that are not lowercase letters (a-z) or whitespace. This helps to clean the text by eliminating punctuation, numbers, and other non-alphabetic characters.
@@ -122,9 +124,11 @@ def clean_text(text):# This function takes a string of text as input and process
         if word not in stop_words:# Check if the word is not in the set of stop words
             filtered.append(word) # If the word is not a stop word, add it to the filtered list
     return filtered 
-
+# below is heart of the crawler
 def bfs_crawl(start_url, max_pages=10):
-
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_DIR = os.path.join(BASE_DIR, "data")
+    os.makedirs(DATA_DIR, exist_ok=True)
     visited.clear()   # Step 4 (important)
     queue = deque([start_url])
     visited.add(start_url)
@@ -146,13 +150,22 @@ def bfs_crawl(start_url, max_pages=10):
         soup = BeautifulSoup(response.text, "html.parser")
         text = soup.get_text() # Extracts all the text content from the webpage, removing HTML tags and other non-text elements. This allows us to analyze the actual content of the page without any formatting or markup.
         cleaned_words = clean_text(text) # This calls the clean_text function to process the extracted text and remove stop words, resulting in a list of meaningful words that can be used for further analysis or processing.
+        word_count = Counter(cleaned_words) 
+        file_path = os.path.join(DATA_DIR, "pages.txt")
+        with open(file_path, "a", encoding="utf-8") as file:
+        
+             file.write(f"\nURL: {current_url}\n")
+             file.write(" ".join(cleaned_words))
+             file.write("\n" + "=" * 50 + "\n")
         print("\n Sample Cleaned Words:", cleaned_words[:10]) # This prints a sample of the cleaned words (the first 10) to give an idea of the content extracted from the webpage after removing stop words.
-
+        print("\nTop 10 Words:")
+        for word, count in word_count.most_common(10):
+            print(word, ":", count)
         title = soup.title.string if soup.title else "No title"
         print("Title:", title)
         print("========================")
 
-        links = soup.find_all("a")[:5]   # Step 3 (limit links)
+        links = soup.find_all("a")[:8]   # Step 3 (limit links)
 
         for link in links:
             href = link.get("href")
