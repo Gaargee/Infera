@@ -101,6 +101,7 @@ from bs4 import BeautifulSoup
 import urllib3 # use to suppress ssl warning
 from urllib.parse import urljoin #joij the links 
 from collections import deque, Counter, defaultdict
+import math
 import re
 stop_words = {
     "i","me","my","we","our","you","your","he","she","it","they","them",
@@ -114,16 +115,29 @@ stop_words = {
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 visited = set() # prevnt duplicte crawling
+page_info = {}
+document_frequency = Counter()
 inverted_index = defaultdict(list)
+page_titles = {}
 def clean_text(text):# This function takes a string of text as input and processes it to remove common stop words, which are words that do not add significant meaning to the text (like "the", "is", "and", etc.). The function converts the text to lowercase, splits it into individual words, and then filters out any words that are present in the predefined set of stop words. Finally, it returns a list of cleaned words that can be used for further analysis or processing.
     text = text.lower() # Convert the input text to lowercase to ensure uniformity and make it easier to compare words against the stop words set.
     text = re.sub(r'[^a-zA-Z\s]', ' ', text) # This uses a regular expression to remove any characters from the text that are not lowercase letters (a-z) or whitespace. This helps to clean the text by eliminating punctuation, numbers, and other non-alphabetic characters.
     words = text.split() # This splits the cleaned text into a list of individual words based on whitespace. Each word can then be processed to check if it is a stop word or not.
-    filtered =[] # Create an empty list to store the filtered words
+    filtered = [] # Create an empty list to store the filtered words
     for word in words:# Loop through each word in the list of words
         if word not in stop_words:# Check if the word is not in the set of stop words
             filtered.append(word) # If the word is not a stop word, add it to the filtered list
     return filtered 
+def create_snippet(text, query, length=150):
+    text_lower = text.lower()
+    position =text_lower.find(query.lower())
+    if position == -1:
+        return text[:length]
+    start = max(0,position-length //2)
+    end = min(len(text),position + length //2)
+    snippet = text[start:end]
+    snippet = " ".join(snippet.split())
+    return snippet
 # below is heart of the crawler
 def bfs_crawl(start_url, max_pages=10):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -132,11 +146,12 @@ def bfs_crawl(start_url, max_pages=10):
     visited.clear()   # Step 4 (important)
     queue = deque([start_url])
     visited.add(start_url)
+    pages_crawled = 0
 
-    while queue and len(visited) < max_pages:
+    while queue and pages_crawled< max_pages:
 
         current_url = queue.popleft()
-
+        pages_crawled += 1
         print("\n========================")
         print("Crawling:", current_url)
 
@@ -155,6 +170,7 @@ def bfs_crawl(start_url, max_pages=10):
         print(cleaned_words[:30])
         for word in set(cleaned_words):
             inverted_index[word].append(current_url)
+            document_frequency[word] += 1
         word_count = Counter(cleaned_words) 
         file_path = os.path.join(DATA_DIR, "pages.txt")
         with open(file_path, "a", encoding="utf-8") as file:
@@ -167,6 +183,12 @@ def bfs_crawl(start_url, max_pages=10):
         for word, count in word_count.most_common(10):
             print(word, ":", count)
         title = soup.title.string if soup.title else "No title"
+        page_info[current_url] = {
+       "title": title,
+       "word_count": len(cleaned_words),
+       "word_freq": word_count,
+       "text": text
+       }
         print("Title:", title)
         print("========================")
 
@@ -182,11 +204,13 @@ def bfs_crawl(start_url, max_pages=10):
                     queue.append(full_url)
 
     # ✅ Step 3 (correct place)
-    print("\nTotal pages crawled:", len(visited))
+    print("\nTotal pages crawled:",  pages_crawled)
 
 
 # Start program
 start_url = input("Enter website URL: ")
+if not start_url.startswith("http://") and not start_url.startswith("https://"):
+    start_url = "https://" + start_url
 bfs_crawl(start_url, max_pages=5)
 while True:
     query = input("\nSearch word (type 'exit' to quit): ").lower()
@@ -195,8 +219,31 @@ while True:
         break
 
     if query in inverted_index:
-        print("\nFound in:")
-        for url in inverted_index[query]:
-            print(url)
+     results = []
+     print("\nFound in:\n")
+  
+     for url in inverted_index[query]:
+        
+        # print("Title :", page_info[url]["title"])
+        # print("Snippet :", page_info[url]["snippet"])
+        # print("URL   :", url)
+        frequency = page_info[url]["word_freq"][query]
+        total_words = page_info[url]["word_count"]
+        tf = frequency / total_words
+        idf = math.log(len(page_info) / document_frequency[query])
+        tf_idf = tf * idf
+        results.append((tf_idf, url))
+     results.sort(reverse=True)    
+     for score, url in results:
+        print("Title :", page_info[url]["title"])
+        snippet = create_snippet(page_info[url]["text"], query)
+        print("Snippet :", snippet)
+        print("URL   :", url)
+        # print("Occurrences :", frequency)
+        # print("TF Score :", round(tf, 3))
+        # print("IDF Score :", round(idf, 3))
+        print("TF-IDF Score :", round(score, 4))
+        # print("Word Count :", total_words)
+        print("-" * 40)
     else:
-        print("\nWord not found.")
+     print("\nWord not found.")
