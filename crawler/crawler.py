@@ -94,15 +94,15 @@
 # # in this whole code the big concept is graph travelsal (DFS) as we are visiting the url for the first time we add it to visited set and then we will visit all the links in that url and repeat the process until we reach max depth or we have already visited the url
 
 
-
 import requests
 import os
 from bs4 import BeautifulSoup
-import urllib3 # use to suppress ssl warning
-from urllib.parse import urljoin #joij the links 
+import urllib3
+from urllib.parse import urljoin
 from collections import deque, Counter, defaultdict
 import math
 import re
+
 stop_words = {
     "i","me","my","we","our","you","your","he","she","it","they","them",
     "is","am","are","was","were","be","been","being",
@@ -112,107 +112,135 @@ stop_words = {
     "through","during","before","after","above","below","to","from",
     "up","down","in","out","on","off","over","under"
 }
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-visited = set() # prevnt duplicte crawling
-page_info = {}
-document_frequency = Counter()
-inverted_index = defaultdict(list)
-page_titles = {}
-def clean_text(text):# This function takes a string of text as input and processes it to remove common stop words, which are words that do not add significant meaning to the text (like "the", "is", "and", etc.). The function converts the text to lowercase, splits it into individual words, and then filters out any words that are present in the predefined set of stop words. Finally, it returns a list of cleaned words that can be used for further analysis or processing.
-    text = text.lower() # Convert the input text to lowercase to ensure uniformity and make it easier to compare words against the stop words set.
-    text = re.sub(r'[^a-zA-Z\s]', ' ', text) # This uses a regular expression to remove any characters from the text that are not lowercase letters (a-z) or whitespace. This helps to clean the text by eliminating punctuation, numbers, and other non-alphabetic characters.
-    words = text.split() # This splits the cleaned text into a list of individual words based on whitespace. Each word can then be processed to check if it is a stop word or not.
-    filtered = [] # Create an empty list to store the filtered words
-    for word in words:# Loop through each word in the list of words
-        if word not in stop_words:# Check if the word is not in the set of stop words
-            filtered.append(word) # If the word is not a stop word, add it to the filtered list
-    return filtered 
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z\s]', ' ', text)
+    words = text.split()
+
+    filtered = []
+    for word in words:
+        if word not in stop_words:
+            filtered.append(word)
+
+    return filtered
+
+
 def create_snippet(text, query, length=150):
     text_lower = text.lower()
-    position =text_lower.find(query.lower())
+    position = text_lower.find(query.lower())
+
     if position == -1:
         return text[:length]
-    start = max(0,position-length //2)
-    end = min(len(text),position + length //2)
+
+    start = max(0, position - length // 2)
+    end = min(len(text), position + length // 2)
+
     snippet = text[start:end]
     snippet = " ".join(snippet.split())
     return snippet
-# below is heart of the crawler
-def bfs_crawl(start_url, max_pages=10):
+
+
+def bfs_crawl(start_url, max_pages, visited, page_info, document_frequency, inverted_index):
+
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     DATA_DIR = os.path.join(BASE_DIR, "data")
     os.makedirs(DATA_DIR, exist_ok=True)
-    visited.clear()   # Step 4 (important)
+
     queue = deque([start_url])
-    visited.add(start_url)
     pages_crawled = 0
 
-    while queue and pages_crawled< max_pages:
+    while queue and pages_crawled < max_pages:
 
         current_url = queue.popleft()
         pages_crawled += 1
+
         print("\n========================")
         print("Crawling:", current_url)
 
         try:
-            response = requests.get(current_url, verify=False, timeout=5)
+            headers = {"User-Agent": "Mozilla/5.0"}
+
+            response = requests.get(
+                current_url,
+                headers=headers,
+                verify=False,
+                timeout=5
+            )
             response.raise_for_status()
+
         except requests.exceptions.RequestException as e:
             print("Error:", e)
             continue
 
         soup = BeautifulSoup(response.text, "html.parser")
-        text = soup.get_text(separator= " ") # Extracts all the text content from the webpage, removing HTML tags and other non-text elements. This allows us to analyze the actual content of the page without any formatting or markup.
-        print(text[:500])
-        cleaned_words = clean_text(text) # This calls the clean_text function to process the extracted text and remove stop words, resulting in a list of meaningful words that can be used for further analysis or processing.
-        print("\nFirst 30 cleaned words:")
-        print(cleaned_words[:30])
+
+        text = soup.get_text(separator=" ")
+        cleaned_words = clean_text(text)
+
         for word in set(cleaned_words):
             inverted_index[word].append(current_url)
             document_frequency[word] += 1
-        word_count = Counter(cleaned_words) 
+
+        word_count = Counter(cleaned_words)
+
         file_path = os.path.join(DATA_DIR, "pages.txt")
         with open(file_path, "a", encoding="utf-8") as file:
-        
-             file.write(f"\nURL: {current_url}\n")
-             file.write(" ".join(cleaned_words))
-             file.write("\n" + "=" * 50 + "\n")
-        print("\n Sample Cleaned Words:", cleaned_words[:10]) # This prints a sample of the cleaned words (the first 10) to give an idea of the content extracted from the webpage after removing stop words.
-        print("\nTop 10 Words:")
-        for word, count in word_count.most_common(10):
-            print(word, ":", count)
-        title = soup.title.string if soup.title else "No title"
-        page_info[current_url] = {
-       "title": title,
-       "word_count": len(cleaned_words),
-       "word_freq": word_count,
-       "text": text
-       }
-        print("Title:", title)
-        print("========================")
+            file.write(f"\nURL: {current_url}\n")
+            file.write(" ".join(cleaned_words))
+            file.write("\n" + "=" * 50 + "\n")
 
-        links = soup.find_all("a")[:8]   # Step 3 (limit links)
+        title = soup.title.string if soup.title else "No title"
+
+        page_info[current_url] = {
+            "title": title,
+            "word_count": len(cleaned_words),
+            "word_freq": word_count,
+            "text": text
+        }
+
+        links = soup.find_all("a")[:8]
 
         for link in links:
             href = link.get("href")
             if href:
-                full_url = urljoin(current_url, href)
+                full_url = urljoin(current_url, href).split('#')[0]
 
-                if full_url not in visited:
+                if full_url not in visited and full_url.startswith("https://en.wikipedia.org"):
                     visited.add(full_url)
                     queue.append(full_url)
 
-    # ✅ Step 3 (correct place)
-    print("\nTotal pages crawled:",  pages_crawled)
+    print("\nTotal pages crawled:", pages_crawled)
+
+    return inverted_index, page_info, document_frequency
 
 
-# Start program
+# ---------------- MAIN ----------------
+
 start_url = input("Enter website URL: ")
+
 if not start_url.startswith("http://") and not start_url.startswith("https://"):
     start_url = "https://" + start_url
-bfs_crawl(start_url, max_pages=5)
+
+visited = set()
+page_info = {}
+document_frequency = Counter()
+inverted_index = defaultdict(list)
+
+inverted_index, page_info, document_frequency = bfs_crawl(
+    start_url,
+    max_pages=5,
+    visited=visited,
+    page_info=page_info,
+    document_frequency=document_frequency,
+    inverted_index=inverted_index
+)
+
 while True:
+
     query = input("\nSearch word (type 'exit' to quit): ").lower()
 
     if query == "exit":
@@ -223,7 +251,6 @@ while True:
     results = {}
     common_urls = None
 
-    # Find pages that contain ALL query words
     for word in query_words:
 
         if word not in inverted_index:
@@ -237,7 +264,6 @@ while True:
         else:
             common_urls = common_urls.intersection(urls)
 
-    # Calculate TF-IDF score for each matching page
     if common_urls is None:
         common_urls = set()
 
@@ -246,7 +272,6 @@ while True:
         score = 0
 
         for word in query_words:
-
             frequency = page_info[url]["word_freq"][word]
             total_words = page_info[url]["word_count"]
 
@@ -259,19 +284,19 @@ while True:
 
     if not results:
         print("\nWord not found.")
+
         suggestions = []
 
         for word in inverted_index:
-
-         if word.startswith(query):
-            suggestions.append(word)
-
+            for q in query_words:
+             if word.startswith(query):
+                suggestions.append(word)
+                break
         if suggestions:
+            print("\nDid you mean:")
+            for word in sorted(suggestions)[:5]:
+                print("-", word)
 
-           print("\nDid you mean:")
-
-           for word in sorted(suggestions)[:5]:
-            print("-", word)
         continue
 
     sorted_results = sorted(
@@ -285,7 +310,7 @@ while True:
     for url, score in sorted_results:
         print("Title :", page_info[url]["title"])
 
-        snippet = create_snippet(page_info[url]["text"], query)
+        snippet = create_snippet(page_info[url]["text"], " ".join(query_words))
         print("Snippet :", snippet)
 
         print("URL   :", url)
