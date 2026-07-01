@@ -218,32 +218,63 @@ while True:
     if query == "exit":
         break
 
-    if query in inverted_index:
-     results = []
-     print("\nFound in:\n")
-  
-     for url in inverted_index[query]:
-        
-        # print("Title :", page_info[url]["title"])
-        # print("Snippet :", page_info[url]["snippet"])
-        # print("URL   :", url)
-        frequency = page_info[url]["word_freq"][query]
-        total_words = page_info[url]["word_count"]
-        tf = frequency / total_words
-        idf = math.log(len(page_info) / document_frequency[query])
-        tf_idf = tf * idf
-        results.append((tf_idf, url))
-     results.sort(reverse=True)    
-     for score, url in results:
+    query_words = clean_text(query)
+
+    results = {}
+    common_urls = None
+
+    # Find pages that contain ALL query words
+    for word in query_words:
+
+        if word not in inverted_index:
+            common_urls = set()
+            break
+
+        urls = set(inverted_index[word])
+
+        if common_urls is None:
+            common_urls = urls
+        else:
+            common_urls = common_urls.intersection(urls)
+
+    # Calculate TF-IDF score for each matching page
+    if common_urls is None:
+        common_urls = set()
+
+    for url in common_urls:
+
+        score = 0
+
+        for word in query_words:
+
+            frequency = page_info[url]["word_freq"][word]
+            total_words = page_info[url]["word_count"]
+
+            tf = frequency / total_words
+            idf = math.log(len(page_info) / document_frequency[word])
+
+            score += tf * idf
+
+        results[url] = score
+
+    if not results:
+        print("\nWord not found.")
+        continue
+
+    sorted_results = sorted(
+        results.items(),
+        key=lambda item: item[1],
+        reverse=True
+    )
+
+    print("\nFound in:\n")
+
+    for url, score in sorted_results:
         print("Title :", page_info[url]["title"])
+
         snippet = create_snippet(page_info[url]["text"], query)
         print("Snippet :", snippet)
+
         print("URL   :", url)
-        # print("Occurrences :", frequency)
-        # print("TF Score :", round(tf, 3))
-        # print("IDF Score :", round(idf, 3))
         print("TF-IDF Score :", round(score, 4))
-        # print("Word Count :", total_words)
         print("-" * 40)
-    else:
-     print("\nWord not found.")
