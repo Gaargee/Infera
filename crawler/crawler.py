@@ -102,6 +102,7 @@ from urllib.parse import urljoin
 from collections import deque, Counter, defaultdict
 import math
 import re
+import pickle
 
 stop_words = {
     "i","me","my","we","our","you","your","he","she","it","they","them",
@@ -193,7 +194,7 @@ def bfs_crawl(start_url, max_pages, visited, page_info, document_frequency, inve
             file.write(" ".join(cleaned_words))
             file.write("\n" + "=" * 50 + "\n")
 
-        title = soup.title.string if soup.title else "No title"
+        title = soup.title.get_text() if soup.title else "No title"
 
         page_info[current_url] = {
             "title": title,
@@ -238,6 +239,11 @@ inverted_index, page_info, document_frequency = bfs_crawl(
     document_frequency=document_frequency,
     inverted_index=inverted_index
 )
+with open("search_index.pkl", "wb") as file:
+    pickle.dump(
+        (inverted_index, page_info, document_frequency),
+        file
+    )
 
 while True:
 
@@ -289,7 +295,7 @@ while True:
 
         for word in inverted_index:
             for q in query_words:
-             if word.startswith(query):
+             if word.startswith(q):
                 suggestions.append(word)
                 break
         if suggestions:
