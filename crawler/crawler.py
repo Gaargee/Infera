@@ -221,31 +221,43 @@ def bfs_crawl(start_url, max_pages, visited, page_info, document_frequency, inve
 
 # ---------------- MAIN ----------------
 
-start_url = input("Enter website URL: ")
+choice = input("Load saved index? (y/n): ").strip().lower()
 
-if not start_url.startswith("http://") and not start_url.startswith("https://"):
-    start_url = "https://" + start_url
+if choice == "y":
+    with open("search_index.pkl", "rb") as file:
+        inverted_index, page_info, document_frequency = pickle.load(file)
 
-visited = set()
-page_info = {}
-document_frequency = Counter()
-inverted_index = defaultdict(list)
 
-inverted_index, page_info, document_frequency = bfs_crawl(
-    start_url,
-    max_pages=5,
-    visited=visited,
-    page_info=page_info,
-    document_frequency=document_frequency,
-    inverted_index=inverted_index
-)
-with open("search_index.pkl", "wb") as file:
-    pickle.dump(
-        (inverted_index, page_info, document_frequency),
-        file
+
+else:
+    start_url = input("Enter website URL: ")
+
+    if not start_url.startswith("http://") and not start_url.startswith("https://"):
+        start_url = "https://" + start_url
+
+    visited = set()
+    page_info = {}
+    document_frequency = Counter()
+    inverted_index = defaultdict(list)
+
+    inverted_index, page_info, document_frequency = bfs_crawl(
+        start_url,
+        max_pages=5,
+        visited=visited,
+        page_info=page_info,
+        document_frequency=document_frequency,
+        inverted_index=inverted_index
     )
 
+    with open("search_index.pkl", "wb") as file:
+        pickle.dump(
+            (inverted_index, page_info, document_frequency),
+            file
+        )
+
 while True:
+
+
 
     query = input("\nSearch word (type 'exit' to quit): ").lower()
 
