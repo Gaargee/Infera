@@ -259,6 +259,19 @@ while True:
 
     if not results:
         print("\nWord not found.")
+        suggestions = []
+
+        for word in inverted_index:
+
+         if word.startswith(query):
+            suggestions.append(word)
+
+        if suggestions:
+
+           print("\nDid you mean:")
+
+           for word in sorted(suggestions)[:5]:
+            print("-", word)
         continue
 
     sorted_results = sorted(
