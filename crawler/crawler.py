@@ -203,7 +203,7 @@ def bfs_crawl(start_url, max_pages, visited, page_info, document_frequency, inve
             "text": text
         }
 
-        links = soup.find_all("a")[:8]
+        links = soup.find_all("a")[:20]
 
         for link in links:
             href = link.get("href")
@@ -242,7 +242,7 @@ else:
 
     inverted_index, page_info, document_frequency = bfs_crawl(
         start_url,
-        max_pages=5,
+        max_pages=30,
         visited=visited,
         page_info=page_info,
         document_frequency=document_frequency,

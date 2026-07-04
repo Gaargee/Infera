@@ -1,16 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Infera Search</title>
+    <title>Infera</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-    <h1>Infera</h1>
+<div class="container">
 
-    <form action="/search" method="POST">
-        <input type="text" name="query" placeholder="Search..." />
-        <button type="submit">Search</button>
+    <h1 class="logo">Infera</h1>
+
+    <p class="tagline">
+        Intelligent Search Engine
+    </p>
+
+    <form action="/search" method="POST" class="search-box">
+
+        <input
+            type="text"
+            name="query"
+            placeholder="Search anything..."
+            autofocus>
+
+        <button type="submit">
+            Search
+        </button>
+
     </form>
 
+</div>
+
 </body>
+
 </html>

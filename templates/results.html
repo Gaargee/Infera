@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Search Results</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1 class="logo">Infera</h1>
+
+    <p class="tagline">
+        Intelligent Search Engine
+    </p>
+
+    <form action="/search" method="POST" class="search-box">
+
+        <input
+            type="text"
+            name="query"
+            value="{{ query }}"
+            placeholder="Search anything..."
+            autofocus>
+
+        <button type="submit">
+            Search
+        </button>
+
+    </form>
+
+    <p class="stats">
+        About {{ result_count }} result(s) in {{ search_time }} sec
+    </p>
+
+    {% for url, score in results %}
+
+    <div class="result-card">
+
+        <h2>
+            <a href="{{ url }}" target="_blank">
+                {{ page_info[url]["title"] }}
+            </a>
+        </h2>
+
+        <p class="url">
+            {{ url }}
+        </p>
+
+        <p class="snippet">
+            {{ snippets[url] }}
+        </p>
+
+        <p class="score">
+            TF-IDF Score : {{ "%.4f"|format(score) }}
+        </p>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+
+</html>
