@@ -11,7 +11,9 @@
 <body>
 
 <div class="container">
-
+    <button id="themeToggle" class="theme-btn">
+        
+    </button>
     <h1 class="logo">Infera</h1>
 
     <p class="tagline">
@@ -25,13 +27,13 @@
             name="query"
             placeholder="Search anything..."
             autofocus>
-
+        <div id="suggestions" class="suggestions-box"></div>
         <button type="submit">
             Search
         </button>
 
     </form>
-
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </div>
 
 </body>

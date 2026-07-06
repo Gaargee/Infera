@@ -12,6 +12,7 @@ body{
 }
 
 .container{
+    position: relative;
     width:90%;
     max-width:1000px;
     margin:auto;
@@ -111,4 +112,186 @@ body{
 .score{
     color:#94a3b8;
     font-size:13px;
+}
+.did-you-mean{
+
+    margin-top:15px;
+
+    margin-bottom:15px;
+
+    font-size:18px;
+
+    color:white;
+
+}
+
+.did-you-mean a{
+
+    color:#58a6ff;
+
+    font-weight:bold;
+
+    text-decoration:none;
+
+}
+
+.did-you-mean a:hover{
+
+    text-decoration:underline;
+
+} 
+
+.search-box{
+    position:relative;
+}
+
+.suggestions-box{
+
+    position:absolute;
+
+    top:55px;
+
+    left:0;
+
+    width:100%;
+
+    background:#1f2937;
+
+    border-radius:10px;
+
+    overflow:hidden;
+
+    z-index:1000;
+
+    box-shadow:0 5px 20px rgba(0,0,0,.3);
+
+}
+
+.suggestion{
+
+    padding:12px;
+
+    cursor:pointer;
+
+    color:white;
+
+    border-bottom:1px solid #333;
+
+}
+
+.suggestion:hover{
+
+    background:#2563eb;
+
+}
+mark{
+
+    background: rgba(79, 142, 247, 0.25);
+
+    color: #79b8ff;
+
+    padding: 2px 5px;
+
+    border: 1px solid #4F8EF7;
+
+    border-radius: 5px;
+
+    font-weight: bold;
+
+}
+/* ---------- Theme Toggle ---------- */
+
+.theme-btn{
+
+    position:absolute;
+
+    top:20px;
+
+    right:20px;
+
+    width:45px;
+
+    height:45px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:20px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+}
+
+.theme-btn:hover{
+
+    transform:scale(1.08);
+
+
+}
+
+/* ---------- Light Theme ---------- */
+
+body.light-mode{
+
+    background:#f4f7fb;
+
+    color:#222;
+
+}
+
+body.light-mode .container{
+
+    color:#222;
+
+}
+
+body.light-mode input{
+
+    background:white;
+
+    color:#222;
+
+    border:1px solid #ccc;
+
+}
+
+body.light-mode .result-card{
+
+    background:white;
+
+    color:#222;
+
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+
+}
+
+body.light-mode .url{
+
+    color:#15803d;
+
+}
+
+body.light-mode .snippet{
+
+    color:#444;
+
+}
+
+body.light-mode .stats{
+
+    color:#666;
+
+}
+
+body.light-mode a{
+
+    color:#1a0dab;
+
 }

@@ -203,14 +203,18 @@ def bfs_crawl(start_url, max_pages, visited, page_info, document_frequency, inve
             "text": text
         }
 
-        links = soup.find_all("a")[:20]
+        links = soup.find_all("a")[:100]
 
         for link in links:
             href = link.get("href")
             if href:
                 full_url = urljoin(current_url, href).split('#')[0]
 
-                if full_url not in visited and full_url.startswith("https://en.wikipedia.org"):
+                if (
+                    full_url.startswith("https://en.wikipedia.org/wiki/")
+                    and ":" not in full_url
+                    and full_url not in visited
+                 ): 
                     visited.add(full_url)
                     queue.append(full_url)
 
@@ -242,7 +246,7 @@ else:
 
     inverted_index, page_info, document_frequency = bfs_crawl(
         start_url,
-        max_pages=30,
+        max_pages=50,
         visited=visited,
         page_info=page_info,
         document_frequency=document_frequency,
