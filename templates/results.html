@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title> INFERA Search Results</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<div class="container">
+    <button id="themeToggle" class="theme-btn"> 
+         🌙
+    </button>
+    <h1 class="logo">Infera</h1>
+
+    <p class="tagline">
+       Fast • Relevant • Intelligent Search
+    </p>
+
+    <form action="/search" method="POST" class="search-box">
+
+        <input
+            type="text"
+            id = "searchInput"
+            name="query"
+            value="{{ query }}"
+            placeholder="Search again"
+            autocomplete="off">
+        <div id="suggestions" class="suggestions-box"></div>
+        <button type="submit">
+            🔍 Search
+        </button>
+
+    </form>
+
+    {% if did_you_mean %}
+
+    <p class="did-you-mean">
+
+        Did you mean?
+
+        <a href="/search"
+           onclick="event.preventDefault();
+                    document.getElementById('dym').submit();">
+
+            {{ did_you_mean }}
+
+        </a>
+
+    </p>
+
+    <form
+        id="dym"
+        action="/search"
+        method="POST">
+
+        <input
+            type="hidden"
+            name="query"
+            value="{{ did_you_mean }}">
+
+    </form>
+
+    {% endif %}
+
+    <p class="stats">
+
+       About <b>{{ result_count }}</b> results found in
+    <b>{{ search_time }}</b> sec
+    </p>
+
+    {% for url, score in results %}
+    <div class="result-card"
+      onclick="window.open('{{url}}','_blank')">
+    
+        <h2>
+
+            <a href="{{ url }}" target="_blank">
+
+                {{ page_info[url]["title"] }}
+
+            </a>
+
+        </h2>
+
+        <p class="url">
+
+            {{ url }}
+
+        </p>
+
+        <p class="snippet">
+
+            {{ snippets[url] |safe }}
+
+        </p>
+
+        <p class="score">
+
+            TF-IDF Score :
+            {{ "%.4f"|format(score) }}
+
+        </p>
+
+    </div>
+
+    {% endfor %}
+
+
+
+<div class="pagination">
+
+    {% if page > 1 %}
+        <a href="/search?page={{ page-1 }}"
+           onclick="event.preventDefault(); document.getElementById('page{{ page-1 }}').submit();">
+            ← Previous
+        </a>
+
+        <form id="page{{ page-1 }}" action="/search?page={{ page-1 }}" method="POST" style="display:none;">
+            <input type="hidden" name="query" value="{{ query }}">
+        </form>
+    {% endif %}
+
+    <span>Page {{ page }} of {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+        <a href="/search?page={{ page+1 }}"
+           onclick="event.preventDefault(); document.getElementById('page{{ page+1 }}').submit();">
+            Next →
+        </a>
+
+        <form id="page{{ page+1 }}" action="/search?page={{ page+1 }}" method="POST" style="display:none;">
+            <input type="hidden" name="query" value="{{ query }}">
+        </form>
+    {% endif %}
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<footer style="text-align:center;margin:45px;color:#94a3b8;">
+Built with ❤️ using Python • Flask • BeautifulSoup • TF-IDF
+</footer>
+</body>
+
+</html>
