@@ -29,7 +29,7 @@
             id = "searchInput"
             name="query"
             value="{{ query }}"
-            placeholder="Search anything..."
+            placeholder="Type here to search..."
             autocomplete="off">
         <div id="suggestions" class="suggestions-box"></div>
         <button type="submit">
@@ -112,6 +112,34 @@
 
     {% endfor %}
 
+
+
+<div class="pagination">
+
+    {% if page > 1 %}
+        <a href="/search?page={{ page-1 }}"
+           onclick="event.preventDefault(); document.getElementById('page{{ page-1 }}').submit();">
+            ← Previous
+        </a>
+
+        <form id="page{{ page-1 }}" action="/search?page={{ page-1 }}" method="POST" style="display:none;">
+            <input type="hidden" name="query" value="{{ query }}">
+        </form>
+    {% endif %}
+
+    <span>Page {{ page }} of {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+        <a href="/search?page={{ page+1 }}"
+           onclick="event.preventDefault(); document.getElementById('page{{ page+1 }}').submit();">
+            Next →
+        </a>
+
+        <form id="page{{ page+1 }}" action="/search?page={{ page+1 }}" method="POST" style="display:none;">
+            <input type="hidden" name="query" value="{{ query }}">
+        </form>
+    {% endif %}
+</div>
 </div>
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

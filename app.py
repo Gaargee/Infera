@@ -3,7 +3,7 @@ import pickle
 import math
 from difflib import get_close_matches
 app = Flask(__name__)
-with open("crawler/search_index.pkl", "rb") as file:
+with open("search_index.pkl", "rb") as file:
     inverted_index, page_info, document_frequency = pickle.load(file)
 def create_snippet(text, query, length=180):
 
@@ -63,6 +63,10 @@ def home():
 def search():
 
     query = request.form["query"].lower()
+    page = int(request.args.get("page", 1))
+    results_per_page = 10
+    start_index = (page - 1) * results_per_page
+    end_index = start_index + results_per_page
 
     query_words = query.split()
     did_you_mean = None
@@ -138,9 +142,12 @@ def search():
         reverse=True
     )
     result_count = len(sorted_results)
+    print("Total results found:", result_count)
+    paginated_results = sorted_results[start_index:end_index]
+
     snippets = {}
 
-    for url, score in sorted_results:
+    for url, score in paginated_results:
      snippets[url] = create_snippet(
         page_info[url]["text"],
         query
@@ -149,12 +156,14 @@ def search():
     return render_template(
     "results.html",
     query=query,
-    results=sorted_results,
+    results=paginated_results,
     page_info=page_info,
     snippets=snippets,
     result_count=result_count,
     search_time=round(0.001, 3),
     did_you_mean=did_you_mean,
+    page=page,
+    total_pages=math.ceil(result_count / results_per_page),
     )
 @app.route("/admin")
 def admin():
