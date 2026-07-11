@@ -58,7 +58,7 @@ def create_snippet(text, query, length=180):
     return snippet  
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", indexed_pages=len(page_info))
 @app.route("/search", methods=["POST"])
 def search():
 

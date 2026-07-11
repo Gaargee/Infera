@@ -3,7 +3,7 @@
 
 <head>
 
-    <title>Search Results</title>
+    <title> INFERA Search Results</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
@@ -14,12 +14,12 @@
 
 <div class="container">
     <button id="themeToggle" class="theme-btn"> 
-        
+         🌙
     </button>
     <h1 class="logo">Infera</h1>
 
     <p class="tagline">
-        Intelligent Search Engine
+       Fast • Relevant • Intelligent Search
     </p>
 
     <form action="/search" method="POST" class="search-box">
@@ -29,11 +29,11 @@
             id = "searchInput"
             name="query"
             value="{{ query }}"
-            placeholder="Type here to search..."
+            placeholder="Search again"
             autocomplete="off">
         <div id="suggestions" class="suggestions-box"></div>
         <button type="submit">
-            Search
+            🔍 Search
         </button>
 
     </form>
@@ -70,15 +70,14 @@
 
     <p class="stats">
 
-        About {{ result_count }} result(s)
-        in {{ search_time }} sec
-
+       About <b>{{ result_count }}</b> results found in
+    <b>{{ search_time }}</b> sec
     </p>
 
     {% for url, score in results %}
-
-    <div class="result-card">
-
+    <div class="result-card"
+      onclick="window.open('{{url}}','_blank')">
+    
         <h2>
 
             <a href="{{ url }}" target="_blank">
@@ -142,6 +141,9 @@
 </div>
 </div>
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<footer style="text-align:center;margin:45px;color:#94a3b8;">
+Built with ❤️ using Python • Flask • BeautifulSoup • TF-IDF
+</footer>
 </body>
 
 </html>

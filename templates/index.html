@@ -12,12 +12,15 @@
 
 <div class="container">
     <button id="themeToggle" class="theme-btn">
-        
+         🌙
     </button>
     <h1 class="logo">Infera</h1>
 
     <p class="tagline">
-        Intelligent Search Engine
+        Fast • Relevant • Intelligent Search
+    </p>
+    <p class="stats">
+    Indexed {{ indexed_pages }} pages
     </p>
 
     <form action="/search" method="POST" class="search-box">
@@ -25,17 +28,21 @@
         <input
             type="text"
             name="query"
-            placeholder="Search anything..."
+            placeholder="Search here..."
             autofocus>
         <div id="suggestions" class="suggestions-box"></div>
         <button type="submit">
-            Search
+            🔍 Search
         </button>
 
     </form>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </div>
 
+
+<footer style="text-align:center;margin:45px;color:#94a3b8;">
+Built with ❤️ using Python • Flask • BeautifulSoup • TF-IDF
+</footer>
 </body>
 
 </html>
