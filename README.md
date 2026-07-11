@@ -109,15 +109,19 @@ The Flask application loads the generated search index and returns ranked result
 
 ### Home Page
 
-> Add screenshot here
+> ![Home Page](assets/home.png)
 
 ### Search Results
 
-> Add screenshot here
+> ![Search Results](assets/content.png)
 
-### Dark Mode
+### light Mode
 
-> Add screenshot here
+> ![Light Mode](assets/light.png)
+
+### search bar
+
+> ![Search bar](assets/search.png)
 
 ---
 
